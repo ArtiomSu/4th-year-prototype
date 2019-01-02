@@ -7,6 +7,7 @@ rm -r -f build <br />
 make <br />
 ./dist/Debug/GNU-Linux/prototype <br />
 <br /> 
+this was simplified into a script ./run.sh <br />
 <br />
 or if there are some issues with make you can just do <br />
 g++ *.cpp <br />
