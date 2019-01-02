@@ -21,48 +21,59 @@
 
 using namespace std;
 
-/*
- * 
- */
 int main(int argc, char** argv) {
+int showWeights = 1;
 
-    int i, ii, ss, itrMax, j, K=0,sum, key_size, key_length, initN, initL, initK;
+
+int i, ii, ss, itrMax, j, K=0,sum, key_size, key_length, initN, initL, initK;
 TreeParityMachine A, B;
-TPMInputVector objInput;
+TPMInputVector tmpinputvector;
 
 
-DynamicArray<char> publickey;
-const char Dictionary [] = "01234567890_abcdefghijklmnopqrstuvwxyz";
+DynamicArray<char> key;
+const char Dictionary [] = "0123456789_abcdefghijklmnopqrstuvwxyz";
+
+cout << "Dictionary size " <<sizeof(Dictionary);
 
 srand (time(NULL)); //random generator
-cout << "Parameter settings (K, N, L)";
-initK = 9;  // k is hidden neurons
-initN = 12; // n is input neurons
-initL = 4;
+initK = 8;  // k is hidden neurons													//9 def, +1 = 4 key increase
+initN = 10; // n is input neurons													//12 def +1 = 3 increase
+initL = 6;	// range of weights														//4 def  +1 = 9 increase, + 2 = 18, maxes out at 54 at 6 if only increasing this
 
         
 A.K=initK, A.N=initN, A.L=initL;//InitA
-A.Initialize (); A.RandomWeight ();
+A.Initialize (); 
+A.RandomWeight ();
 
 B.K=initK, B.N=initN, B.L=initL;//InitB
-B.Initialize (); B.RandomWeight ();
+B.Initialize (); 
+B.RandomWeight ();
+
+
+if(showWeights){
+	cout << "\n\n Weights of a and b before sync" << "\n";
+	for(i=0; i< initK * initN; i++){
+		cout << i << ": \t" << A.W.Z[i] << "\t" << B.W.Z[i] << "\n";
+	}
+	cout << "\n\n\n";
+}
+
 
 itrMax=(A.L*A.L*A.L*A.L)*A.N*A.K; /////
 cout << "\nMaximum Iterations: "<<itrMax;
-objInput.xLength (B.K, B.N);
+tmpinputvector.xLength (B.K, B.N);
 cout<<"\nSynchronizing TPM Networks...";
 
 
 
-
 for (i=1; i!=itrMax; i++) {
-	objInput.CreateRandomVector(B.K, B.N);
-	A.ComputeTPMResult(objInput.X);
-	B.ComputeTPMResult(objInput.X);
+	tmpinputvector.CreateRandomVector(B.K, B.N);
+	A.ComputeTPMResult(tmpinputvector.X);
+	B.ComputeTPMResult(tmpinputvector.X);
 	
 	if(A.TPMOutput == B.TPMOutput) {
-		A.UpdateWeight (objInput.X);
-		B.UpdateWeight (objInput.X);
+		A.UpdateWeight (tmpinputvector.X);
+		B.UpdateWeight (tmpinputvector.X);
 		sum = 0;
 		for(ss=0;ss<A.K*A.N;ss++)	//Find sum
 			sum += abs(A.W.Z[ss]-	B.W.Z[ss]);
@@ -70,43 +81,42 @@ for (i=1; i!=itrMax; i++) {
 	} 
 }
 if (sum == 0)
-	cout << "Status: SUCCESS! itterations=" << i;
-else cout << "Status: FAILED!";
+	cout << "Status: SUCCESS! after " << i << " itterations";
+else{
+	cout << "Status: FAILED!";
+	return 1;
+}
 
-
-
-cout << "\n\n\n";
-cout << "Iterations:" << i << "DataExchanged:" << (i*(A.K*A.N+4)/1024) << " KiB";
-key_size = 37 / (A.L * 2 + 1);
+cout << "\nDataExchanged: " << (i*(A.K*A.N+4)/1024) << " KiB\n";
+key_size = (sizeof(Dictionary)-1) / (A.L * 2 + 1);
 key_length = A.K * A.N / key_size;
 
 cout << "Key length: " << key_length;
-publickey.length(key_length + 1);
+key.length(key_length + 1);
 	
 for(i = 0; i < key_length; i++)
-	publickey.Z[i] = 0;
+	key.Z[i] = 0;
 	
 for (i=1; i < key_length+1; i++) {
 	K = 1;
 	for(j=(i-1)*key_size; j<i*key_size;j++)
 		K = K + A.W.Z[j] + A.L;
 	//
-	publickey.Z[i-1]=Dictionary[K];
+	key.Z[i-1]=Dictionary[K];
 }
 
-publickey.Z[key_length]='\0'; //Null char
-cout << "Public Key: " << publickey.Z;
+key.Z[key_length]='\0'; //Null char
+cout << "\nKey: " << key.Z << "\n\n";
 
 
+if(showWeights){
+	cout << "\n\n Weights of a and b after sync" << "\n";
+	for(i=0; i< initK * initN; i++){
+		cout << i << ": \t" << A.W.Z[i] << "\t" << B.W.Z[i] << "\n";
+	}
+	cout << "\n\n\n";
+}
 
-
-
-
-
-
-
-
-cout << "\n\n\n\nMade it to end";
     
     return 0;
 }
