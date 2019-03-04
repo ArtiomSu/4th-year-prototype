@@ -19,7 +19,13 @@
 #include <stdlib.h>
 #include <string>
 
+
+
+#include <sstream>
 using namespace std;
+
+
+
 
 int main(int argc, char** argv) {
 int showWeights = 1;
@@ -61,15 +67,29 @@ if(showWeights){
 
 itrMax=(A.L*A.L*A.L*A.L)*A.N*A.K; /////
 cout << "\nMaximum Iterations: "<<itrMax;
-tmpinputvector.xLength (B.K, B.N);
+tmpinputvector.xLength (A.K, A.N);
 cout<<"\nSynchronizing TPM Networks...";
 
 
 
 for (i=1; i!=itrMax; i++) {
-	tmpinputvector.CreateRandomVector(B.K, B.N);
+	tmpinputvector.CreateRandomVector(A.K, A.N);
+
+
+
 	A.ComputeTPMResult(tmpinputvector.X);
-	B.ComputeTPMResult(tmpinputvector.X);
+
+
+	std::string in_string = tmpinputvector.to_string(A.K , A.N);
+
+
+	TPMInputVector in;
+   	in.xLength(A.K, A.N);
+
+   	in.set_from_string(in_string, A.K, A.N);
+
+
+	B.ComputeTPMResult(in.X);
 	
 	if(A.TPMOutput == B.TPMOutput) {
 		A.UpdateWeight (tmpinputvector.X);
@@ -117,7 +137,30 @@ if(showWeights){
 	cout << "\n\n\n";
 }
 
-    
+   tmpinputvector.CreateRandomVector(A.K, A.N);
+   
+   //cout << TPMInputVector_to_string(&tmpinputvector, A.K * A.N);
+   cout << tmpinputvector.to_string(A.K , A.N);
+
+   cout << endl;
+
+   string t = tmpinputvector.to_string(A.K , A.N);
+   cout << t << endl;
+
+   TPMInputVector in;
+   in.xLength(A.K, A.N);
+   //in.CreateRandomVector(A.K, A.N);
+
+   cout<< "made it here" << endl;
+
+   //string_to_TPMInputVector(&in, t);
+
+   in.set_from_string(t, A.K, A.N);
+
+   cout<< "made it here1" << endl;
+   cout << in.to_string(A.K , A.N);
+	cout << endl;
+
     return 0;
 }
 
